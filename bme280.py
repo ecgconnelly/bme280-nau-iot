@@ -20,6 +20,8 @@
 # Modified : Emilia Connelly for NAU IoT
 #--------------------------------------
 import sys
+import os.path
+from os import path
 import smbus
 import time
 from ctypes import c_short
@@ -27,7 +29,7 @@ from ctypes import c_byte
 from ctypes import c_ubyte
 
 DEVICE = 0x76 # Default device I2C address
-
+CSV_HEADER = "Temperature (C),Pressure (hPa),Humidity (%)\n"
 
 bus = smbus.SMBus(1) # Rev 2 Pi, Pi 2 & Pi 3 uses bus 1
                      # Rev 1 Pi uses bus 0
@@ -170,29 +172,41 @@ def directPrint():
   print ("Pressure : ", pressure, "hPa")
   print ("Humidity : ", humidity, "%")
 
+def logAtmoToCSV(fileName):
+  #reads data from the BME280
+  #writes atmo data as a CSV line
+  #if the file doesn't exist yet, writes a header line first
 
+  fileExists = path.exists(fileName)
+
+  logFile = open(fileName, "a")
+  
+  if (not(fileExists)):
+    print("Log file ", fileName, " not found, starting a new one")
+    logFile.write(CSV_HEADER)
+
+  temperature, pressure, humidity = readBME280All()
+  logFile.write(str(temperature) + "," + str(pressure) + "," + str(humidity) + "\n")
+  logFile.close()
+
+  
 def main():
   if(len(sys.argv) == 1):
     #only argument is name of script
     #human-readable output to stdout
     directPrint()
-    sys.exit()
+    sys.exit("Done")
 
 
   #if we're here, we got some arguments
   logFileName = ""
   errFileName = ""
-  
+
   if (len(sys.argv) >= 2):
     #first CLA is name of CSV file
     logFileName = sys.argv[1]
-
-  if (len(sys.argv) >= 3):
-    #second CLA is name of error file
-    errFileName = sys.argv[2]
-
-  print(errFileName)
-
+    
+  logAtmoToCSV(logFileName)
   
 
 
