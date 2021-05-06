@@ -24,12 +24,13 @@ import os.path
 from os import path
 import smbus
 import time
+from datetime import date
 from ctypes import c_short
 from ctypes import c_byte
 from ctypes import c_ubyte
 
 DEVICE = 0x76 # Default device I2C address
-CSV_HEADER = "Temperature (C),Pressure (hPa),Humidity (%)\n"
+CSV_HEADER = "Date,Time,Temperature (C),Pressure (hPa),Humidity (%)\n"
 
 bus = smbus.SMBus(1) # Rev 2 Pi, Pi 2 & Pi 3 uses bus 1
                      # Rev 1 Pi uses bus 0
@@ -185,7 +186,15 @@ def logAtmoToCSV(fileName):
     print("Log file ", fileName, " not found, starting a new one")
     logFile.write(CSV_HEADER)
 
+  #todo: add exception handling for communication failure with BME280
   temperature, pressure, humidity = readBME280All()
+
+  dateStr = str(date.today())
+  now = time.localtime()
+  timeStr = (str(now.tm_hour).zfill(2) + ":" + str(now.tm_min).zfill(2) + 
+      ":" + str(now.tm_sec).zfill(2))
+
+  logFile.write(dateStr + "," + timeStr + ",")
   logFile.write(str(temperature) + "," + str(pressure) + "," + str(humidity) + "\n")
   logFile.close()
 
