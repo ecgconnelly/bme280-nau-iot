@@ -231,7 +231,7 @@ def logAtmoToCSV(fileName):
 
     except:
       print("Could not bring BME280 online, exiting.", file = sys.stderr)
-      
+      sys.exit()
 
   temperature, pressure, humidity = readBME280All()
 
