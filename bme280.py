@@ -24,13 +24,23 @@ import os.path
 from os import path
 import smbus
 import time
+import RPi.GPIO as GPIO
 from datetime import date
 from ctypes import c_short
 from ctypes import c_byte
 from ctypes import c_ubyte
 
+
+#Operating parameters 
 DEVICE = 0x76 # Default device I2C address
 CSV_HEADER = "Date,Time,Temperature (C),Pressure (hPa),Humidity (%)\n"
+
+
+#Pin definitions
+BME280_PWR = 4
+BME280_CS = 17
+BME280_ADDR = 27
+
 
 bus = smbus.SMBus(1) # Rev 2 Pi, Pi 2 & Pi 3 uses bus 1
                      # Rev 1 Pi uses bus 0
@@ -186,7 +196,40 @@ def logAtmoToCSV(fileName):
     print("Log file ", fileName, " not found, starting a new one")
     logFile.write(CSV_HEADER)
 
+
   #todo: add exception handling for communication failure with BME280
+  try:
+    (id, version) = readBME280ID()
+
+  except:
+    print("Could not communicate with BME280, attempting reset...", file = sys.stderr)
+    #perform BME280 hard reset
+    #make sure CS pin is high at powerup
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(BME280_PWR,GPIO.OUT)
+    GPIO.setup(BME280_CS, GPIO.OUT)
+    GPIO.setup(BME280_ADDR,GPIO.OUT)
+
+    GPIO.output(BME280_PWR, 0) #remove power from BME280
+    GPIO.output(BME280_CS, 1) #CS high to use I2C mode
+    GPIO.output(BME280_ADDR, 0) #assumes we're using I2C address 0x76, make this more flexible later
+
+    time.sleep(5) #wait 5 seconds for power down
+
+    print("Reapplying power...", file = sys.stderr)
+    GPIO.output(BME280_PWR, 1) #reapply power
+
+    time.sleep(5)
+
+    print("Attempting to communicate again...", file = sys.stderr)
+
+    try:
+      (id, version) = readBME280ID()
+
+    except:
+      print("Could not bring BME280 online, exiting.", file = sys.stderr)
+      
+
   temperature, pressure, humidity = readBME280All()
 
   dateStr = str(date.today())
