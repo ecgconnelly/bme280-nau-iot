@@ -192,9 +192,8 @@ def resetBME280():
 
   time.sleep(5)
 
-  GPIO.cleanup() #we're done with GPIO for now
-
-
+  #Leave BME280 powered up, cleaning up GPIO now means it won't
+  #  be on when we try to talk to it
 
 
 def directPrint():
