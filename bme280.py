@@ -171,17 +171,58 @@ def readBME280All(addr=DEVICE):
 
   return temperature/100.0,pressure/100.0,humidity
 
+
+def resetBME280():
+  print("Could not communicate with BME280, attempting reset...", file = sys.stderr)
+  #perform BME280 hard reset
+  #make sure CS pin is high at powerup
+  GPIO.setmode(GPIO.BCM)
+  GPIO.setup(BME280_PWR,GPIO.OUT)
+  GPIO.setup(BME280_CS, GPIO.OUT)
+  GPIO.setup(BME280_ADDR,GPIO.OUT)
+
+  GPIO.output(BME280_PWR, 0) #remove power from BME280
+  GPIO.output(BME280_CS, 1) #CS high to use I2C mode
+  GPIO.output(BME280_ADDR, 0) #assumes we're using I2C address 0x76, make this more flexible later
+
+  time.sleep(5) #wait 5 seconds for power down
+
+  print("Reapplying power...", file = sys.stderr)
+  GPIO.output(BME280_PWR, 1) #reapply power
+
+  time.sleep(5)
+
+  GPIO.cleanup() #we're done with GPIO for now
+
+
+
+
 def directPrint():
 
-  (chip_id, chip_version) = readBME280ID()
+  try:
+    (chip_id, chip_version) = readBME280ID()
+
+  except:
+    resetBME280()
+
+    try:
+      (chip_id, chip_version) = readBME280ID()
+
+    except:
+      print("Could not bring BME280 online, exiting.", file = sys.stderr)
+      sys.exit()
+
+      
   print ("Chip ID     :", chip_id)
   print ("Version     :", chip_version)
 
+  
   temperature,pressure,humidity = readBME280All()
 
   print ("Temperature : ", temperature, "C")
   print ("Pressure : ", pressure, "hPa")
   print ("Humidity : ", humidity, "%")
+
 
 def logAtmoToCSV(fileName):
   #reads data from the BME280
@@ -202,26 +243,6 @@ def logAtmoToCSV(fileName):
     (id, version) = readBME280ID()
 
   except:
-    print("Could not communicate with BME280, attempting reset...", file = sys.stderr)
-    #perform BME280 hard reset
-    #make sure CS pin is high at powerup
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(BME280_PWR,GPIO.OUT)
-    GPIO.setup(BME280_CS, GPIO.OUT)
-    GPIO.setup(BME280_ADDR,GPIO.OUT)
-
-    GPIO.output(BME280_PWR, 0) #remove power from BME280
-    GPIO.output(BME280_CS, 1) #CS high to use I2C mode
-    GPIO.output(BME280_ADDR, 0) #assumes we're using I2C address 0x76, make this more flexible later
-
-    time.sleep(5) #wait 5 seconds for power down
-
-    print("Reapplying power...", file = sys.stderr)
-    GPIO.output(BME280_PWR, 1) #reapply power
-
-    time.sleep(5)
-
-    GPIO.cleanup() #we're done with GPIO for now
     
     print("Attempting to communicate again...", file = sys.stderr)
 
