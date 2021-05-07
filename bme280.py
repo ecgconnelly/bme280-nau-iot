@@ -225,6 +225,7 @@ def logAtmoToCSV(fileName):
 
     try:
       (id, version) = readBME280ID()
+      print("Success!", file = sys.stderr)
 
     except:
       print("Could not bring BME280 online, exiting.", file = sys.stderr)
