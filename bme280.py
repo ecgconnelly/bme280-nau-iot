@@ -221,6 +221,8 @@ def logAtmoToCSV(fileName):
 
     time.sleep(5)
 
+    GPIO.cleanup() #we're done with GPIO for now
+    
     print("Attempting to communicate again...", file = sys.stderr)
 
     try:
