@@ -33,7 +33,7 @@ from ctypes import c_ubyte
 
 #Operating parameters 
 DEVICE = 0x76 # Default device I2C address
-CSV_HEADER = "Date,Time,Temperature (C),Pressure (hPa),Humidity (%)\n"
+CSV_HEADER = "Date,Time,Temperature (C),Pressure (hPa),Humidity (%),Sensor Comm.\n"
 
 
 #Pin definitions
@@ -237,6 +237,8 @@ def logAtmoToCSV(fileName):
     logFile.write(CSV_HEADER)
 
 
+  commStatus = "unknown"
+
   #todo: add exception handling for communication failure with BME280
   try:
     (id, version) = readBME280ID()
@@ -254,9 +256,18 @@ def logAtmoToCSV(fileName):
 
     except:
       print("Could not bring BME280 online, exiting.", file = sys.stderr)
-      sys.exit()
+      commStatus = "failed"
 
-  temperature, pressure, humidity = readBME280All()
+    else:
+      commStatus = "reset"
+  else:
+    commStatus = "ok"
+
+  if (commStatus in ("ok", "reset")):
+    temperature, pressure, humidity = readBME280All()
+  else:
+    #if we can't communicate with the BME280, log a line of null data
+    temperature, pressure, humidity = "", "", ""   
 
   dateStr = str(date.today())
   now = time.localtime()
@@ -264,7 +275,8 @@ def logAtmoToCSV(fileName):
       ":" + str(now.tm_sec).zfill(2))
 
   logFile.write(dateStr + "," + timeStr + ",")
-  logFile.write(str(temperature) + "," + str(pressure) + "," + str(humidity) + "\n")
+  logFile.write(str(temperature) + "," + str(pressure) + "," + str(humidity) + ",")
+  logFile.write(commStatus + "\n")
   logFile.close()
 
   
