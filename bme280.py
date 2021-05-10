@@ -242,7 +242,10 @@ def logAtmoToCSV(fileName):
     (id, version) = readBME280ID()
 
   except:
-    
+    print("Communication with BME280 failed, attempting reset")
+
+    resetBME280()
+        
     print("Attempting to communicate again...", file = sys.stderr)
 
     try:
