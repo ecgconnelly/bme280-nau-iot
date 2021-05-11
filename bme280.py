@@ -185,12 +185,12 @@ def resetBME280():
   GPIO.output(BME280_CS, 1) #CS high to use I2C mode
   GPIO.output(BME280_ADDR, 0) #assumes we're using I2C address 0x76, make this more flexible later
 
-  time.sleep(5) #wait 5 seconds for power down
+  time.sleep(2) #wait a bit for power down
 
   print("Reapplying power...", file = sys.stderr)
   GPIO.output(BME280_PWR, 1) #reapply power
 
-  time.sleep(5)
+  time.sleep(2)
 
   #Leave BME280 powered up, cleaning up GPIO now means it won't
   #  be on when we try to talk to it
