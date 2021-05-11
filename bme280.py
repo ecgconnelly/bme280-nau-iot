@@ -19,6 +19,8 @@
 #
 # Modified : Emilia Connelly for NAU IoT
 #--------------------------------------
+
+
 import sys
 import os.path
 from os import path
@@ -41,9 +43,9 @@ BME280_PWR = 4
 BME280_CS = 17
 BME280_ADDR = 27
 
-
 bus = smbus.SMBus(1) # Rev 2 Pi, Pi 2 & Pi 3 uses bus 1
                      # Rev 1 Pi uses bus 0
+
 
 def getShort(data, index):
   # return two bytes from data as a signed 16-bit value
@@ -220,6 +222,7 @@ def directPrint():
 
   print ("Temperature : ", temperature, "C")
   print ("Pressure : ", pressure, "hPa")
+
   print ("Humidity : ", humidity, "%")
 
 
